@@ -5,6 +5,8 @@ import static org.springframework.http.ResponseEntity.ok;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +28,8 @@ import com.example.demo.service.CustomUserDetailsService;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationEndpoint {
+
+	private static final Logger LOG = LoggerFactory.getLogger(AuthenticationEndpoint.class);
 
 	@Autowired
 	AuthenticationManager authenticationManager;
@@ -58,13 +62,20 @@ public class AuthenticationEndpoint {
 	@SuppressWarnings("rawtypes")
 	@PostMapping("/register")
 	public ResponseEntity register(@RequestBody User user) {
-		User userExists = userService.findUserByEmail(user.getEmail());
-		if (userExists != null) {
-			throw new BadCredentialsException("User with username: " + user.getEmail() + " already exists");
+		try {
+			LOG.info("inside register");
+			LOG.error("inside register");
+			User userExists = userService.findUserByEmail(user.getEmail());
+			if (userExists != null) {
+				throw new BadCredentialsException("User with username: " + user.getEmail() + " already exists");
+			}
+			userService.saveUser(user);
+			Map<Object, Object> model = new HashMap<>();
+			model.put("message", "User registered successfully");
+			return ok(model);
+		} catch (Exception e) {
+			LOG.error("error : {}", e);
+			return null;
 		}
-		userService.saveUser(user);
-		Map<Object, Object> model = new HashMap<>();
-		model.put("message", "User registered successfully");
-		return ok(model);
 	}
 }
